@@ -1,0 +1,788 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SpendWise — Personal Finance Tracker</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Bundled offline Chart.js -->
+    <script src="js/lib/chart.umd.min.js"></script>
+</head>
+<body>
+    <!-- AUTHENTICATION VIEW (Shown when user is not logged in) -->
+    <div id="view-auth" class="auth-wrapper hidden">
+        <div class="auth-container">
+            <div class="auth-brand">
+                <div class="brand-icon auth-brand-icon">
+                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                </div>
+                <h1 class="auth-title">SpendWise</h1>
+                <p class="auth-subtitle">Personal Finance Tracker</p>
+                <span class="auth-badge">Server Side Engineering Academic Mini-Project</span>
+            </div>
+
+            <!-- Login Card -->
+            <div class="card auth-card" id="authLoginCard">
+                <div class="auth-card-header">
+                    <h2>Sign in to your account</h2>
+                    <p>Enter your credentials to access your financial dashboard</p>
+                </div>
+                <div class="auth-alert hidden" id="loginErrorAlert"></div>
+                <form id="loginForm">
+                    <div class="form-group">
+                        <label for="loginEmailInput" class="form-label">Email Address</label>
+                        <input type="email" id="loginEmailInput" class="form-control" placeholder="student@example.com" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="loginPasswordInput" class="form-label">Password</label>
+                        <input type="password" id="loginPasswordInput" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="btnLoginSubmit">
+                        <span>Sign In</span>
+                    </button>
+                </form>
+                <div class="auth-switch">
+                    <span>Don't have an account yet?</span>
+                    <a href="#" id="linkToRegister">Create an account</a>
+                </div>
+            </div>
+
+            <!-- Register Card -->
+            <div class="card auth-card hidden" id="authRegisterCard">
+                <div class="auth-card-header">
+                    <h2>Create an account</h2>
+                    <p>Track your student expenses, allowances, and monthly budgets</p>
+                </div>
+                <div class="auth-alert hidden" id="registerErrorAlert"></div>
+                <form id="registerForm">
+                    <div class="form-group">
+                        <label for="regNameInput" class="form-label">Full Name</label>
+                        <input type="text" id="regNameInput" class="form-control" placeholder="Alex Student" required autocomplete="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="regEmailInput" class="form-label">Email Address</label>
+                        <input type="email" id="regEmailInput" class="form-control" placeholder="alex@example.com" required autocomplete="email">
+                    </div>
+                    <div class="form-group">
+                        <label for="regPasswordInput" class="form-label">Password</label>
+                        <input type="password" id="regPasswordInput" class="form-control" placeholder="At least 6 characters" minlength="6" required autocomplete="new-password">
+                    </div>
+                    <div class="form-group">
+                        <label for="regConfirmPasswordInput" class="form-label">Confirm Password</label>
+                        <input type="password" id="regConfirmPasswordInput" class="form-control" placeholder="Re-enter password" minlength="6" required autocomplete="new-password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block" id="btnRegisterSubmit">
+                        <span>Create Account</span>
+                    </button>
+                </form>
+                <div class="auth-switch">
+                    <span>Already have an account?</span>
+                    <a href="#" id="linkToLogin">Sign in instead</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="app-layout hidden">
+        <!-- Persistent Sidebar (Desktop) -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-title">SpendWise</span>
+                        <span class="brand-subtitle">Finance Tracker</span>
+                    </div>
+                </div>
+                <button class="mobile-close-btn" id="mobileCloseBtn" aria-label="Close menu">&times;</button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="#dashboard" class="nav-item active" data-view="dashboard">
+                    <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="7" height="9"></rect>
+                        <rect x="14" y="3" width="7" height="5"></rect>
+                        <rect x="14" y="12" width="7" height="9"></rect>
+                        <rect x="3" y="16" width="7" height="5"></rect>
+                    </svg>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#transactions" class="nav-item" data-view="transactions">
+                    <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="8" y1="6" x2="21" y2="6"></line>
+                        <line x1="8" y1="12" x2="21" y2="12"></line>
+                        <line x1="8" y1="18" x2="21" y2="18"></line>
+                        <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                        <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                        <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                    </svg>
+                    <span>Transactions</span>
+                </a>
+                <a href="#budgets" class="nav-item" data-view="budgets">
+                    <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span>Budgets</span>
+                </a>
+                <a href="#reports" class="nav-item" data-view="reports">
+                    <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>Reports</span>
+                </a>
+                <a href="#settings" class="nav-item" data-view="settings">
+                    <svg class="nav-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                    <span>Settings</span>
+                </a>
+            </nav>
+
+            <div class="sidebar-footer">
+                <!-- User Profile Card -->
+                <div class="user-profile-card">
+                    <div class="user-avatar" id="sidebarUserAvatar">U</div>
+                    <div class="user-info">
+                        <span class="user-name" id="sidebarUserName">Student</span>
+                        <span class="user-email" id="sidebarUserEmail">student@example.com</span>
+                    </div>
+                    <button class="btn-logout" id="sidebarLogoutBtn" title="Log out" aria-label="Log out">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                            <polyline points="16 17 21 12 16 7"></polyline>
+                            <line x1="21" y1="12" x2="9" y2="12"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="status-indicator">
+                    <span class="status-dot online"></span>
+                    <span class="status-text">Server Connected</span>
+                </div>
+                <div class="academic-tag">
+                    <span>Server Side Engineering</span>
+                    <small>Academic Mini-Project</small>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Wrapper -->
+        <div class="main-wrapper">
+            <!-- Top Header Bar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="3" y1="12" x2="21" y2="12"></line>
+                            <line x1="3" y1="6" x2="21" y2="6"></line>
+                            <line x1="3" y1="18" x2="21" y2="18"></line>
+                        </svg>
+                    </button>
+                    <div class="page-title-area">
+                        <h1 class="page-title" id="pageTitle">Dashboard</h1>
+                        <span class="page-caption" id="pageCaption">Your money, at a glance</span>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <div class="month-selector-wrapper">
+                        <label for="globalMonthPicker" class="visually-hidden">Select Month</label>
+                        <input type="month" id="globalMonthPicker" class="form-control month-input" title="Select Reporting Month">
+                    </div>
+                    <button class="btn btn-primary" id="btnOpenAddTransactionModal">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        <span>Add Transaction</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Main Content Area -->
+            <main class="content-container">
+                <!-- VIEW 1: DASHBOARD -->
+                <section class="view-section active" id="view-dashboard">
+                    <!-- Demo Seed / Empty State Banner (Shown when no transactions) -->
+                    <div class="banner empty-banner hidden" id="dashboardEmptyBanner">
+                        <div class="banner-content">
+                            <h3>No transactions recorded for this month</h3>
+                            <p>Record your income or expenses using the <strong>Add Transaction</strong> button above, or load sample academic demonstration data to preview full dashboard analytics.</p>
+                        </div>
+                        <div class="banner-actions">
+                            <button class="btn btn-outline" id="btnSeedDemoFromBanner">Load Demo Data</button>
+                        </div>
+                    </div>
+
+                    <!-- Summary Metrics Row -->
+                    <div class="metrics-grid">
+                        <div class="metric-card income-card">
+                            <div class="metric-header">
+                                <span class="metric-label">Monthly Income</span>
+                                <span class="metric-badge income-badge">Inflow</span>
+                            </div>
+                            <div class="metric-value" id="metricTotalIncome">₹0.00</div>
+                            <div class="metric-footnote">For selected month</div>
+                        </div>
+
+                        <div class="metric-card expense-card">
+                            <div class="metric-header">
+                                <span class="metric-label">Monthly Expenses</span>
+                                <span class="metric-badge expense-badge">Outflow</span>
+                            </div>
+                            <div class="metric-value" id="metricTotalExpenses">₹0.00</div>
+                            <div class="metric-footnote">Actual spending</div>
+                        </div>
+
+                        <div class="metric-card balance-card">
+                            <div class="metric-header">
+                                <span class="metric-label">Net Monthly Savings</span>
+                                <span class="metric-badge balance-badge" id="netSavingsBadge">Savings</span>
+                            </div>
+                            <div class="metric-value" id="metricNetSavings">₹0.00</div>
+                            <div class="metric-footnote">All-time balance: <strong id="metricAllTimeBalance">₹0.00</strong></div>
+                        </div>
+
+                        <div class="metric-card budget-card">
+                            <div class="metric-header">
+                                <span class="metric-label">Remaining Budget</span>
+                                <span class="metric-badge budget-badge" id="budgetMetricBadge">Budget</span>
+                            </div>
+                            <div class="metric-value" id="metricRemainingBudget">₹0.00</div>
+                            <div class="metric-footnote">Limit: <span id="metricTotalBudgetLimit">₹0.00</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Charts Grid -->
+                    <div class="charts-grid">
+                        <div class="card chart-card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">Income & Expense Overview</h2>
+                                    <p class="card-subtitle">Historical 6-month comparison</p>
+                                </div>
+                            </div>
+                            <div class="chart-container">
+                                <canvas id="chartOverview"></canvas>
+                            </div>
+                        </div>
+
+                        <div class="card chart-card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">Spending by Category</h2>
+                                    <p class="card-subtitle">Monthly expense distribution</p>
+                                </div>
+                            </div>
+                            <div class="chart-container category-chart-container">
+                                <canvas id="chartCategory"></canvas>
+                                <div class="empty-chart-text hidden" id="emptyCategoryChartText">No expense records in this month</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bottom Grid: Recent Transactions & Budget Progress -->
+                    <div class="dashboard-details-grid">
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">Recent Transactions</h2>
+                                    <p class="card-subtitle">Latest recorded activity</p>
+                                </div>
+                                <button class="btn btn-subtle" id="btnViewAllTransactions">View All &rarr;</button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Date</th>
+                                            <th>Description</th>
+                                            <th>Category</th>
+                                            <th>Type</th>
+                                            <th class="text-right">Amount</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentTransactionsTableBody">
+                                        <tr><td colspan="5" class="text-center text-muted py-4">Loading transactions...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">Budget Progress</h2>
+                                    <p class="card-subtitle">Category spending vs monthly limits</p>
+                                </div>
+                                <button class="btn btn-subtle" id="btnManageBudgets">Manage &rarr;</button>
+                            </div>
+                            <div class="budget-summary-list" id="dashboardBudgetList">
+                                <div class="text-center text-muted py-4">Loading budget progress...</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 2: TRANSACTIONS -->
+                <section class="view-section" id="view-transactions">
+                    <div class="card">
+                        <!-- Filters Toolbar -->
+                        <div class="toolbar">
+                            <div class="toolbar-search">
+                                <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                </svg>
+                                <input type="text" id="txSearchInput" class="form-control" placeholder="Search description...">
+                            </div>
+
+                            <div class="toolbar-filters">
+                                <select id="txFilterType" class="form-control">
+                                    <option value="">All Types</option>
+                                    <option value="EXPENSE">Expenses Only</option>
+                                    <option value="INCOME">Income Only</option>
+                                </select>
+
+                                <select id="txFilterCategory" class="form-control">
+                                    <option value="">All Categories</option>
+                                    <!-- Populated dynamically -->
+                                </select>
+
+                                <div class="date-filter-group">
+                                    <input type="date" id="txFilterStartDate" class="form-control" title="Start date">
+                                    <span class="date-separator">to</span>
+                                    <input type="date" id="txFilterEndDate" class="form-control" title="End date">
+                                </div>
+
+                                <button class="btn btn-secondary" id="btnResetFilters" title="Reset all filters">Reset</button>
+                            </div>
+                        </div>
+
+                        <!-- Transactions Table -->
+                        <div class="table-responsive">
+                            <table class="data-table" id="transactionsTable">
+                                <thead>
+                                    <tr>
+                                        <th class="sortable" data-sort="transactionDate">Date <span class="sort-arrow">&darr;</span></th>
+                                        <th>Description</th>
+                                        <th>Category</th>
+                                        <th>Type</th>
+                                        <th>Method</th>
+                                        <th class="text-right sortable" data-sort="amount">Amount</th>
+                                        <th class="text-center">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="transactionsTableBody">
+                                    <tr><td colspan="7" class="text-center text-muted py-4">Loading records...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination Footer -->
+                        <div class="pagination-footer">
+                            <div class="pagination-info" id="txPaginationInfo">Showing 0 of 0 entries</div>
+                            <div class="pagination-controls">
+                                <select id="txPageSize" class="form-control page-size-select">
+                                    <option value="10">10 per page</option>
+                                    <option value="25">25 per page</option>
+                                    <option value="50">50 per page</option>
+                                </select>
+                                <div class="page-buttons" id="txPageButtons"></div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 3: BUDGETS -->
+                <section class="view-section" id="view-budgets">
+                    <div class="section-actions-bar">
+                        <div class="actions-left">
+                            <p class="section-description">Set and monitor expense limits for each spending category. Progress automatically calculates against real database transactions.</p>
+                        </div>
+                        <button class="btn btn-primary" id="btnOpenAddBudgetModal">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            <span>Set Category Budget</span>
+                        </button>
+                    </div>
+
+                    <!-- Budget Metrics Summary Row -->
+                    <div class="metrics-grid budget-metrics-grid">
+                        <div class="metric-card">
+                            <span class="metric-label">Total Allocated</span>
+                            <div class="metric-value" id="budgetTotalAllocated">₹0.00</div>
+                            <div class="metric-footnote">Sum of category limits</div>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Actual Spent</span>
+                            <div class="metric-value" id="budgetTotalSpent">₹0.00</div>
+                            <div class="metric-footnote">In budgeted categories</div>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Remaining Pool</span>
+                            <div class="metric-value" id="budgetTotalRemaining">₹0.00</div>
+                            <div class="metric-footnote">Available to spend</div>
+                        </div>
+                        <div class="metric-card">
+                            <span class="metric-label">Budget Utilization</span>
+                            <div class="metric-value" id="budgetOverallUtilization">0.0%</div>
+                            <div class="metric-footnote">Selected month</div>
+                        </div>
+                    </div>
+
+                    <!-- Category Budgets Grid -->
+                    <div class="budgets-grid" id="budgetsCardsGrid">
+                        <!-- Populated dynamically -->
+                    </div>
+                </section>
+
+                <!-- VIEW 4: REPORTS -->
+                <section class="view-section" id="view-reports">
+                    <!-- Report Header Controls -->
+                    <div class="card report-controls-card">
+                        <div class="report-filters-bar">
+                            <div class="filter-item">
+                                <label for="reportMonthSelector">Report Month:</label>
+                                <input type="month" id="reportMonthSelector" class="form-control">
+                            </div>
+                            <button class="btn btn-secondary" id="btnGenerateReport">Refresh Report</button>
+                            <button class="btn btn-outline" id="btnPrintReport" title="Print or save as PDF">Print / Export</button>
+                        </div>
+                    </div>
+
+                    <!-- Comparative Performance Card -->
+                    <div class="card" id="monthlyReportCard">
+                        <div class="card-header">
+                            <div>
+                                <h2 class="card-title" id="reportTitle">Monthly Financial Analysis</h2>
+                                <p class="card-subtitle" id="reportPeriodText">Comprehensive overview and month-over-month change</p>
+                            </div>
+                        </div>
+
+                        <div class="report-stats-grid">
+                            <div class="stat-box">
+                                <span class="stat-label">Total Income</span>
+                                <span class="stat-value text-income" id="repIncome">₹0.00</span>
+                                <div class="stat-delta" id="repIncomeDelta">No prior data</div>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">Total Expenses</span>
+                                <span class="stat-value text-expense" id="repExpense">₹0.00</span>
+                                <div class="stat-delta" id="repExpenseDelta">No prior data</div>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">Net Savings</span>
+                                <span class="stat-value" id="repNetSavings">₹0.00</span>
+                                <div class="stat-delta" id="repNetSavingsDelta">Net amount</div>
+                            </div>
+                            <div class="stat-box">
+                                <span class="stat-label">Savings Rate</span>
+                                <span class="stat-value" id="repSavingsRate">0.0%</span>
+                                <div class="stat-delta">Of total income</div>
+                            </div>
+                            <div class="stat-box highlight-box">
+                                <span class="stat-label">Highest Spending Area</span>
+                                <span class="stat-value text-bold" id="repHighestCategory">None</span>
+                                <div class="stat-delta" id="repHighestAmount">₹0.00</div>
+                            </div>
+                        </div>
+
+                        <!-- 6-Month Trend Chart -->
+                        <div class="report-chart-section">
+                            <h3 class="subsection-title">6-Month Trend Analysis</h3>
+                            <div class="chart-container report-trend-container">
+                                <canvas id="chartReportTrend"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Category Breakdown Table -->
+                        <div class="report-table-section">
+                            <h3 class="subsection-title">Category Spending Breakdown</h3>
+                            <div class="table-responsive">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Category</th>
+                                            <th class="text-right">Total Expenses</th>
+                                            <th class="text-right">% Contribution</th>
+                                            <th class="text-right">Transaction Count</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="reportCategoryTableBody">
+                                        <tr><td colspan="4" class="text-center text-muted py-4">No data for selected period</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- VIEW 5: SETTINGS -->
+                <section class="view-section" id="view-settings">
+                    <div class="settings-grid">
+                        <!-- Preferences Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">Application Preferences</h2>
+                                    <p class="card-subtitle">Format and reporting defaults</p>
+                                </div>
+                            </div>
+                            <div class="settings-content">
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-title">Currency</span>
+                                        <span class="setting-desc">Display currency symbol throughout the interface</span>
+                                    </div>
+                                    <div class="setting-control">
+                                        <input type="text" class="form-control" value="INR (₹) — Indian Rupee" disabled>
+                                    </div>
+                                </div>
+                                <div class="setting-item">
+                                    <div class="setting-info">
+                                        <span class="setting-title">Decimal Precision</span>
+                                        <span class="setting-desc">Standard financial two-decimal formatting (₹0.00)</span>
+                                    </div>
+                                    <div class="setting-control">
+                                        <input type="text" class="form-control" value="2 Decimals (BigDecimal)" disabled>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Demo & Testing Data Controls -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">Academic Demonstration Data</h2>
+                                    <p class="card-subtitle">Tools for college project presentation and viva evaluation</p>
+                                </div>
+                            </div>
+                            <div class="settings-content">
+                                <div class="demo-card-action">
+                                    <div class="action-text">
+                                        <strong>Load Academic Demo Data</strong>
+                                        <p class="text-muted text-sm">Populates realistic student finances (allowance, freelance stipend, canteen food, textbooks, and monthly category budgets) across recent months. Safe to click multiple times (idempotent).</p>
+                                    </div>
+                                    <button class="btn btn-primary" id="btnSeedDemoData">Load Demo Data</button>
+                                </div>
+
+                                <div class="demo-card-action">
+                                    <div class="action-text">
+                                        <strong>Clear Demo Data Only</strong>
+                                        <p class="text-muted text-sm">Removes <em>only</em> sample demo records. <strong>All your personal transactions and custom budgets remain completely intact.</strong></p>
+                                    </div>
+                                    <button class="btn btn-outline" id="btnClearDemoData">Clear Demo Data</button>
+                                </div>
+
+                                <div class="demo-card-action danger-border">
+                                    <div class="action-text">
+                                        <strong style="color: var(--accent-expense);">Reset All User Data</strong>
+                                        <p class="text-muted text-sm">Permanently deletes all transaction records and category budgets for your account from the MySQL database.</p>
+                                    </div>
+                                    <button class="btn btn-danger" id="btnClearAllData">Reset All Data</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System Architecture & Tech Stack Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div>
+                                    <h2 class="card-title">System & Project Details</h2>
+                                    <p class="card-subtitle">Server Side Engineering (SSE) academic specifications</p>
+                                </div>
+                            </div>
+                            <div class="settings-content">
+                                <div class="system-specs-table">
+                                    <div class="spec-row"><span class="spec-label">Project Name:</span> <span class="spec-val">SpendWise Personal Finance Tracker</span></div>
+                                    <div class="spec-row"><span class="spec-label">Backend Engine:</span> <span class="spec-val">Java 21 / Spring Boot 3.3.5</span></div>
+                                    <div class="spec-row"><span class="spec-label">Database Persistence:</span> <span class="spec-val">MySQL Relational Database (schema: finance_tracker)</span></div>
+                                    <div class="spec-row"><span class="spec-label">ORM Framework:</span> <span class="spec-val">Hibernate JPA with Spring Data Specifications</span></div>
+                                    <div class="spec-row"><span class="spec-label">Monetary Precision:</span> <span class="spec-val">java.math.BigDecimal & SQL DECIMAL(12, 2)</span></div>
+                                    <div class="spec-row"><span class="spec-label">Frontend Architecture:</span> <span class="spec-val">Semantic HTML5, Modular CSS3, Vanilla ES6 JavaScript</span></div>
+                                    <div class="spec-row"><span class="spec-label">Data Visualization:</span> <span class="spec-val">Chart.js (bundled offline)</span></div>
+                                    <div class="spec-row"><span class="spec-label">Automated Tests:</span> <span class="spec-val">JUnit 5, Spring Boot Test, MockMvc (H2 test profile)</span></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD / EDIT TRANSACTION -->
+    <div class="modal-backdrop hidden" id="transactionModal">
+        <div class="modal-dialog modal-dialog-tx">
+            <div class="modal-header">
+                <h3 class="modal-title" id="transactionModalTitle">Add Transaction</h3>
+                <button class="modal-close-btn" id="btnCloseTxModal" aria-label="Close modal">&times;</button>
+            </div>
+            <form id="transactionForm">
+                <div class="modal-body">
+                    <input type="hidden" id="txFormId">
+
+                    <!-- Type Selector Segment -->
+                    <div class="form-group">
+                        <label class="form-label">Transaction Type</label>
+                        <div class="segmented-control">
+                            <button type="button" class="segment-btn active" data-type="EXPENSE" id="btnTypeExpense">Expense</button>
+                            <button type="button" class="segment-btn" data-type="INCOME" id="btnTypeIncome">Income</button>
+                        </div>
+                        <input type="hidden" id="txTypeInput" value="EXPENSE">
+                    </div>
+
+                    <!-- Amount Field -->
+                    <div class="form-group">
+                        <label for="txAmountInput" class="form-label">Amount (₹) <span class="required">*</span></label>
+                        <div class="input-prefix-wrapper">
+                            <span class="input-prefix">₹</span>
+                            <input type="number" id="txAmountInput" class="form-control" placeholder="0.00" step="0.01" min="0.01" required>
+                        </div>
+                        <span class="field-error" id="errTxAmount"></span>
+                    </div>
+
+                    <!-- Category Field -->
+                    <div class="form-group">
+                        <label for="txCategoryInput" class="form-label">Category <span class="required">*</span></label>
+                        <select id="txCategoryInput" class="form-control" required>
+                            <!-- Populated based on type -->
+                        </select>
+                        <span class="field-error" id="errTxCategory"></span>
+                    </div>
+
+                    <!-- Description Field -->
+                    <div class="form-group">
+                        <label for="txDescInput" class="form-label">Description <span class="required">*</span></label>
+                        <input type="text" id="txDescInput" class="form-control" placeholder="e.g. Canteen lunch, Java book, Monthly stipend" maxlength="255" required>
+                        <span class="field-error" id="errTxDesc"></span>
+                    </div>
+
+                    <!-- Date & Payment Method Grid -->
+                    <div class="form-row">
+                        <div class="form-group col-half">
+                            <label for="txDateInput" class="form-label">Date <span class="required">*</span></label>
+                            <input type="date" id="txDateInput" class="form-control" required>
+                            <span class="field-error" id="errTxDate"></span>
+                        </div>
+                        <div class="form-group col-half">
+                            <label for="txMethodInput" class="form-label">Payment Method</label>
+                            <select id="txMethodInput" class="form-control">
+                                <option value="UPI">UPI (GPay / PhonePe / Paytm)</option>
+                                <option value="CASH">Cash</option>
+                                <option value="BANK_TRANSFER">Bank Transfer / NEFT</option>
+                                <option value="CARD">Debit / Credit Card</option>
+                                <option value="OTHER">Other</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btnCancelTxModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveTransaction">
+                        <span class="btn-spinner hidden" id="saveTxSpinner"></span>
+                        <span id="saveTxText">Save Transaction</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: ADD / EDIT BUDGET -->
+    <div class="modal-backdrop hidden" id="budgetModal">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <h3 class="modal-title" id="budgetModalTitle">Set Category Budget</h3>
+                <button class="modal-close-btn" id="btnCloseBudgetModal">&times;</button>
+            </div>
+            <form id="budgetForm">
+                <input type="hidden" id="budgetFormId">
+
+                <div class="form-group">
+                    <label for="budgetMonthInput" class="form-label">Budget Month <span class="required">*</span></label>
+                    <input type="month" id="budgetMonthInput" class="form-control" required>
+                    <span class="field-error" id="errBudgetMonth"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="budgetCategoryInput" class="form-label">Expense Category <span class="required">*</span></label>
+                    <select id="budgetCategoryInput" class="form-control" required>
+                        <option value="Food">Food</option>
+                        <option value="Transport">Transport</option>
+                        <option value="Education">Education</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Bills">Bills & Utilities</option>
+                        <option value="Health">Health</option>
+                        <option value="Other">Other</option>
+                    </select>
+                    <span class="field-error" id="errBudgetCategory"></span>
+                </div>
+
+                <div class="form-group">
+                    <label for="budgetLimitInput" class="form-label">Spending Limit (₹) <span class="required">*</span></label>
+                    <div class="input-prefix-wrapper">
+                        <span class="input-prefix">₹</span>
+                        <input type="number" id="budgetLimitInput" class="form-control" placeholder="0.00" step="0.01" min="0.01" required>
+                    </div>
+                    <span class="field-error" id="errBudgetLimit"></span>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btnCancelBudgetModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btnSaveBudget">
+                        <span class="btn-spinner hidden" id="saveBudgetSpinner"></span>
+                        <span id="saveBudgetText">Save Budget</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMATION (DELETE / RESET) -->
+    <div class="modal-backdrop hidden" id="confirmModal">
+        <div class="modal-dialog modal-dialog-sm">
+            <div class="modal-header">
+                <h3 class="modal-title" id="confirmModalTitle">Confirm Action</h3>
+                <button class="modal-close-btn" id="btnCloseConfirmModal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmModalMessage">Are you sure you want to proceed?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="btnCancelConfirm">Cancel</button>
+                <button type="button" class="btn btn-danger" id="btnExecuteConfirm">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FLOATING TOAST NOTIFICATIONS -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- JavaScript Application Modules -->
+    <script src="js/api.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/transactions.js"></script>
+    <script src="js/budgets.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
